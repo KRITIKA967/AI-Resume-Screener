@@ -1,0 +1,111 @@
+{% extends "admin_layout.html" %}
+{% block content %}
+
+<h2 class="fw-bold text-primary mb-4">Dashboard</h2>
+
+<!-- Metrics Cards -->
+<div class="row mb-4">
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3 stat-card">
+            <h5 class="text-muted">Total Candidates</h5>
+            <h2 class="fw-bold text-dark">{{ candidates|length }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3 stat-card">
+            <h5 class="text-muted">Shortlisted</h5>
+            <h2 class="fw-bold text-success">{{ shortlisted }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3 stat-card">
+            <h5 class="text-muted">Not Shortlisted</h5>
+            <h2 class="fw-bold text-danger">{{ not_shortlisted }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<!-- Analytics Chart -->
+<div class="card shadow-sm border-0 p-4 mb-4">
+    <h5 class="fw-bold mb-2">AI Screening Statistics</h5>
+    <canvas id="statusChart" height="20"></canvas>
+</div>
+
+<!-- Candidate Table -->
+<div class="card shadow-sm border-0 p-4">
+
+    <h4 class="fw-bold mb-3">Candidate List</h4>
+
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Name</th>
+                <th>Prediction</th>
+                <th>Score</th>
+                <th>Job Role</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for c in candidates %}
+            <tr>
+                <td>{{ c[1] }}</td>
+
+                <td>
+                    {% if c[2] == "Shortlisted" %}
+                        <span class="badge bg-success">Shortlisted</span>
+                    {% else %}
+                        <span class="badge bg-danger">Not Shortlisted</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ c[3]|round(2) }}</td>
+
+                <td>
+                    {% if c[4] %}
+                        <span class="badge bg-primary">{{ c[4] }}</span>
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ c[5] }}</td>
+
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" href="/view/{{ c[0] }}">View</a>
+                    <a class="btn btn-sm btn-outline-danger" href="/delete/{{ c[0] }}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+fetch("/chart_data")
+.then(res => res.json())
+.then(data => {
+    new Chart(document.getElementById("statusChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Shortlisted", "Not Shortlisted"],
+            datasets: [{
+                data: [data.shortlisted, data.not_shortlisted],
+                backgroundColor: ["#28a745", "#dc3545"]
+            }]
+        }
+    });
+});
+</script>
+
+{% endblock %}
